@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Poll, Question, Answer
+from .models import Answer, Poll, Question
 
 
 class PollSerializer(serializers.ModelSerializer):
@@ -8,6 +8,7 @@ class PollSerializer(serializers.ModelSerializer):
     class Meta:
         model = Poll
         exclude = ('time_start', 'time_end',)
+
 
 class QuestionSerializer(serializers.ModelSerializer):
     """Serializer for Question model with default
@@ -17,10 +18,14 @@ class QuestionSerializer(serializers.ModelSerializer):
         model = Question
         fields = '__all__'
 
+
 class PollAllSerializer(serializers.ModelSerializer):
     """Serializer for Poll model with default
        functional of ModelSerializer."""
-    question_list = QuestionSerializer(required=False, many=True, source='questions')
+    question_list = QuestionSerializer(required=False,
+                                       many=True,
+                                       source='questions')
+
     class Meta:
         model = Poll
         fields = '__all__'
@@ -44,6 +49,7 @@ class AnswerSerializer(serializers.ModelSerializer):
         model = Answer
         exclude = ('id',)
 
+
 class PutAnswerSerializer(serializers.ModelSerializer):
     """Serializer for Question model with default
        functional of ModelSerializer."""
@@ -51,6 +57,7 @@ class PutAnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Answer
         exclude = ('id',)
+
 
 class ActivePollsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -60,10 +67,10 @@ class ActivePollsSerializer(serializers.ModelSerializer):
 
 class AnswersQuestionsSerializer(serializers.ModelSerializer):
     questios = QuestionSerializer(required=False,
-                                       many=True)
+                                  many=True)
     pool = QuestionSerializer(required=False,
-                                       many=True)
-                                       
+                              many=True)
+
     class Meta:
         model = Answer
         fields = '__all__'

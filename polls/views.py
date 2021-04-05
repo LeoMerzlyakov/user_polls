@@ -1,27 +1,22 @@
-from django.contrib.auth.models import AnonymousUser
-
 from datetime import datetime
 
-from rest_framework import viewsets, status, permissions, mixins, views
-from rest_framework.authtoken.models import Token
+from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
-from django.contrib.auth.models import User
+from .models import Answer, Poll, Question
 
-
-from .models import Poll, Question, Answer
-
-from .serializers import (PollAllSerializer,
-                          QuestionSerializer,
-                          PollSerializer,
-                          PollPatchSerializer,
+from .serializers import (ActivePollsSerializer,
+                          AnswersQuestionsSerializer,
                           AnswerSerializer,
-                          ActivePollsSerializer,
                           PutAnswerSerializer,
-                          AnswersQuestionsSerializer
+                          PollAllSerializer,
+                          PollPatchSerializer,
+                          PollSerializer,
+                          QuestionSerializer,
                           )
+
 
 class PollViewSet(viewsets.ModelViewSet):
     """List/create/updete/delete/  all polls"""
@@ -30,13 +25,12 @@ class PollViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(time_start=datetime.now())
-    
+
     def get_serializer_class(self):
         if self.action == 'create':
             return PollSerializer
-        return PollAllSerializer 
+        return PollAllSerializer
 
-    
     @action(methods=['PATCH'],
             detail=True,
             permission_classes=[permissions.IsAdminUser],
@@ -64,7 +58,8 @@ class PollViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         return Response(
-            'End poll by PATCH command', status=status.HTTP_405_METHOD_NOT_ALLOWED
+            'End poll by PATCH command',
+            status=status.HTTP_405_METHOD_NOT_ALLOWED
             )
 
 
@@ -101,6 +96,7 @@ class AnswerViewSet(viewsets.ModelViewSet):
     queryset = Question.objects.all()
     permission_classes = [permissions.IsAdminUser]
 
+
 class AnswerByPollViewSet(viewsets.GenericViewSet,
                           mixins.ListModelMixin):
     """List of Answers"""
@@ -128,23 +124,23 @@ class ActivePollsViewSet(viewsets.GenericViewSet,
 @api_view(['POST'])
 def answer_question(request):
     if request.method == 'POST':
-        serializer = PutAnswerSerializer(data=request.data) 
+        serializer = PutAnswerSerializer(data=request.data)
         if serializer.is_valid():
-            if request.user.pk == None:
+            if not request.user.pk:
                 serializer.save()
             else:
                 serializer.save(user=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED) 
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
 
 class GetPollsByUserView(viewsets.GenericViewSet,
                          mixins.ListModelMixin):
     serializer_class = AnswersQuestionsSerializer
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
         answers = Answer.objects.filter(user=user)
         return answers
-
