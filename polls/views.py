@@ -99,7 +99,7 @@ class AnswerViewSet(viewsets.ModelViewSet):
 
 class AnswerByPollViewSet(viewsets.GenericViewSet,
                           mixins.ListModelMixin):
-    """List of Answers"""
+    """List of Answers by poll and question"""
 
     serializer_class = AnswerSerializer
     permission_classes = [permissions.IsAdminUser]
@@ -116,6 +116,7 @@ class AnswerByPollViewSet(viewsets.GenericViewSet,
 
 class ActivePollsViewSet(viewsets.GenericViewSet,
                          mixins.ListModelMixin):
+    """ All active polls """
     serializer_class = ActivePollsSerializer
     queryset = Poll.objects.filter(is_active=True)
     permission_classes = [permissions.AllowAny]
@@ -123,6 +124,7 @@ class ActivePollsViewSet(viewsets.GenericViewSet,
 
 @api_view(['POST'])
 def answer_question(request):
+    """ function to post the answer """
     if request.method == 'POST':
         serializer = PutAnswerSerializer(data=request.data)
         if serializer.is_valid():
@@ -137,6 +139,7 @@ def answer_question(request):
 
 class GetPollsByUserView(viewsets.GenericViewSet,
                          mixins.ListModelMixin):
+    """ returns all answers by request user """
     serializer_class = AnswersQuestionsSerializer
     permission_classes = [permissions.IsAuthenticated]
 
