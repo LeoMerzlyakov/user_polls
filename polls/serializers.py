@@ -47,7 +47,7 @@ class AnswerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Answer
-        exclude = ('id',)
+        fields = '__all__'
 
 
 class PutAnswerSerializer(serializers.ModelSerializer):

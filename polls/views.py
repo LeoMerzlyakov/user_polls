@@ -19,7 +19,14 @@ from .serializers import (ActivePollsSerializer,
 
 
 class PollViewSet(viewsets.ModelViewSet):
-    """List/create/updete/delete/  all polls"""
+    """
+    Возвращяет полный список опросов вне зависимости от активности
+    для редактирования/удаления ответа необходимо указать ../poll/poll_id/
+    В момент создания опроса:
+    - время старта - задается текущее время 
+    - дата окончания - Null.
+    Доступен только Администратору.
+    """
     queryset = Poll.objects.all()
     permission_classes = [permissions.IsAdminUser]
 
@@ -37,7 +44,11 @@ class PollViewSet(viewsets.ModelViewSet):
             url_path='end_poll',
             url_name='end_poll')
     def end_poll(self, request, pk=None):
-        """ End the poll comand """
+        """ 
+        Эндпоинт для завершения опроса.
+        Эедпоинт закрывает опрос по текщему времени.
+        Доступен только Администратору.
+        """
         if request.method == 'PATCH':
             poll = get_object_or_404(Poll, pk=pk)
             poll_serializer = PollPatchSerializer(
@@ -64,7 +75,16 @@ class PollViewSet(viewsets.ModelViewSet):
 
 
 class QuestionViewSet(viewsets.ModelViewSet):
-    """List/create/updete/delete/ questions"""
+    """
+    Полный список вопросов.
+    При создании вопроса необходимо в теле запроса передать id опроса,
+    в который будет включен этот вопрос.
+    При создании/редактировании необходимо указать тип запроса 'type':
+    TXT - Ответ текстом
+    CH1 - Выбор одгого
+    CHM - Выбор нескольких
+    Доступен только Администратору.
+    """
 
     serializer_class = QuestionSerializer
     queryset = Question.objects.all()
@@ -73,7 +93,16 @@ class QuestionViewSet(viewsets.ModelViewSet):
 
 
 class QwestionsByPollViewSet(viewsets.ModelViewSet):
-    """List/create/updete/delete/ questions"""
+    """
+    Список вопросов конкретного опрса.
+    В url необходимо прописать id опроса.
+    При создании вопроса автоматически проставится id опроса.
+    При создании/редактировании необходимо указать тип запроса 'type':
+    TXT - Ответ текстом
+    CH1 - Выбор одгого
+    CHM - Выбор нескольких
+    Доступен только Администратору.
+    """
 
     serializer_class = QuestionSerializer
     permission_classes = [permissions.IsAdminUser]
@@ -90,16 +119,29 @@ class QwestionsByPollViewSet(viewsets.ModelViewSet):
 
 
 class AnswerViewSet(viewsets.ModelViewSet):
-    """List/create/updete/delete/ all Answer"""
+    """
+    Эндпоит списка ответов. Просмотр, создание, редактирование всех ответов.
+    Доступен только Администратору.
+    Для создания необходимо передать в теле запроса:
+        - 'poll' id опроса
+        - 'question' id вопроса
+        - 'text' отвте в текстовом формате
+    для редактирования/удаления ответа необходимо указать ../answer/answer_id/
+    Пользователь проставится автоматически.
+    Если неавторизованый пользователь, то значение Null
+    """
 
-    serializer_class = QuestionSerializer
-    queryset = Question.objects.all()
+    serializer_class = AnswerSerializer
+    queryset = Answer.objects.all()
     permission_classes = [permissions.IsAdminUser]
 
 
 class AnswerByPollViewSet(viewsets.GenericViewSet,
                           mixins.ListModelMixin):
-    """List of Answers by poll and question"""
+    """
+    Возвращает список ответов по вопросу конкретоного опроса.
+    Доступен Администротору
+    """
 
     serializer_class = AnswerSerializer
     permission_classes = [permissions.IsAdminUser]
@@ -116,7 +158,7 @@ class AnswerByPollViewSet(viewsets.GenericViewSet,
 
 class ActivePollsViewSet(viewsets.GenericViewSet,
                          mixins.ListModelMixin):
-    """ All active polls """
+    """ Возвращает список активных вопросов. Доступен каждому """
     serializer_class = ActivePollsSerializer
     queryset = Poll.objects.filter(is_active=True)
     permission_classes = [permissions.AllowAny]
@@ -124,7 +166,15 @@ class ActivePollsViewSet(viewsets.GenericViewSet,
 
 @api_view(['POST'])
 def answer_question(request):
-    """ function to post the answer """
+    """
+    Эндпоинт для ответа.
+    Для ответа необходимо передать в теле запроса:
+        - 'poll' id опроса
+        - 'question' id вопроса
+        - 'text' отвте в текстовом формате
+    Пользователь проставится автоматически.
+    Если неавторизованый пользователь, то значение Null
+    """
     if request.method == 'POST':
         serializer = PutAnswerSerializer(data=request.data)
         if serializer.is_valid():
@@ -139,7 +189,10 @@ def answer_question(request):
 
 class GetPollsByUserView(viewsets.GenericViewSet,
                          mixins.ListModelMixin):
-    """ returns all answers by request user """
+    """ 
+    Возвращает список ответов текущего пользователя.
+    Только для авторизованных пользователей
+     """
     serializer_class = AnswersQuestionsSerializer
     permission_classes = [permissions.IsAuthenticated]
 
